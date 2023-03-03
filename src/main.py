@@ -32,8 +32,8 @@ class MyModel(sly.nn.inference.InstanceSegmentation):
         ####### CUSTOM CODE FOR MY MODEL STARTS (e.g. DETECTRON2) #######
         # Here we are downloading model weights by url for demo,
         # but it also can be downloaded from Team Files (passing an entire folder is possible too)
-        # weights_path = self.download(weights_url)
-        weights_path = "my_model/weights.pkl"
+        weights_path = self.download(weights_url)
+        # weights_path = "my_model/weights.pkl"
         model_info = sly.json.load_json_file(os.path.join(self.model_dir, "model_info.json"))
         architecture_name = model_info["architecture"]
         cfg = get_cfg()
@@ -48,9 +48,7 @@ class MyModel(sly.nn.inference.InstanceSegmentation):
     def get_classes(self) -> List[str]:
         return self.class_names  # e.g. ["cat", "dog", ...]
 
-    def predict(
-        self, image_path: str, settings: Dict[str, Any]
-    ) -> List[sly.nn.PredictionMask]:
+    def predict(self, image_path: str, settings: Dict[str, Any]) -> List[sly.nn.PredictionMask]:
         confidence_threshold = settings.get("confidence_threshold", 0.5)
         image = cv2.imread(image_path)  # BGR
 
