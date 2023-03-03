@@ -14,7 +14,7 @@ python3 -m venv .venv && \
 source .venv/bin/activate && \
 
 echo "Install requirements..." && \
-pip3 install -r dev_requirements.txt && \
+pip3 install -r requirements.txt && \
 
 arch=$(uname -m)
 ARCHFLAGS="-arch x86_64" 
