@@ -12,15 +12,10 @@
     "serve",
     "development"
   ],
-  "icon": "some url",
-  "poster": "some url",
-  "context_menu": {
-    "target": ["files_folder"]
-  },
   "session_tags": ["deployed_nn"],
   "need_gpu": true,
   "community_agent": false,
-  "docker_image": "supervisely/detectron2-demo:1.0.2",
+  "docker_image": "supervisely/detectron2-demo:1.0.3",
   "entrypoint": "python -m uvicorn src.main:m.app --host 0.0.0.0 --port 8000",
   "port": 8000,
   "headless": true

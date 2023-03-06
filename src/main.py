@@ -33,8 +33,7 @@ class MyModel(sly.nn.inference.InstanceSegmentation):
         # Here we are downloading model weights by url for demo,
         # but it also can be downloaded from Team Files (passing an entire folder is possible too)
         weights_path = self.download(weights_url)
-        # weights_path = "my_model/weights.pkl"
-        model_info = sly.json.load_json_file(os.path.join(self.model_dir, "model_info.json"))
+        model_info = sly.json.load_json_file(os.path.join(model_dir, "model_info.json"))
         architecture_name = model_info["architecture"]
         cfg = get_cfg()
         cfg.merge_from_file(model_zoo.get_config_file(architecture_name))
