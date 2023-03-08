@@ -2,19 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Local Debug",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/src/main.py",
-            "console": "integratedTerminal",
-            "justMyCode": true,
-            "env": {
-                "PYTHONPATH": "${workspaceFolder}:${PYTHONPATH}",
-                "LOG_LEVEL": "DEBUG",
-            }
-        },
-        {
-            "name": "Debug in Supervisely platform",
+            "name": "Local debug with GUI (run model)",
             "type": "python",
             "request": "launch",
             "module": "uvicorn",
@@ -28,13 +16,47 @@
                 "websockets"
             ],
             "jinja": true,
-            "justMyCode": true,
+            "justMyCode": false,
+            "env": {
+                "LOG_LEVEL": "DEBUG",
+                "PYTHONPATH": "${workspaceFolder}:${PYTHONPATH}",
+                "SLY_APP_DATA_DIR": "${workspaceFolder}/temp_data",
+            }
+        },
+        {
+            "name": "Local debug with GUI (query)",
+            "type": "python",
+            "request": "launch",
+            "program": "src/run_local.py",
+            "justMyCode": false,
+            "env": {
+                "LOG_LEVEL": "DEBUG",
+                "PYTHONPATH": "${workspaceFolder}:${PYTHONPATH}",
+                "SLY_APP_DATA_DIR": "${workspaceFolder}/temp_data",
+            }
+        },
+        {
+            "name": "Advanced mode for Supervisely Team",
+            "type": "python",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "src.main:m.app",
+                "--host",
+                "0.0.0.0",
+                "--port",
+                "8000",
+                "--ws",
+                "websockets"
+            ],
+            "jinja": true,
+            "justMyCode": false,
             "env": {
                 "PYTHONPATH": "${workspaceFolder}:${PYTHONPATH}",
                 "LOG_LEVEL": "DEBUG",
                 "ENV": "production",
                 "DEBUG_WITH_SLY_NET": "1",
-                // "SLY_APP_DATA_DIR": "${workspaceFolder}"
+                "SLY_APP_DATA_DIR": "${workspaceFolder}/temp_data",
             }
         }
     ]

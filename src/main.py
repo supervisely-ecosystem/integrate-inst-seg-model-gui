@@ -1,22 +1,18 @@
 import os
+from pathlib import Path
 from typing_extensions import Literal
 from typing import List, Any, Dict
 import cv2
 from dotenv import load_dotenv
-import torch
 import supervisely as sly
+import supervisely.nn.inference.gui as GUI
 
-from detectron2 import model_zoo
 from detectron2.engine import DefaultPredictor
 from detectron2.config import get_cfg
 from detectron2.data import MetadataCatalog
 
 load_dotenv("local.env")
 load_dotenv(os.path.expanduser("~/supervisely.env"))
-
-weights_url = "https://dl.fbaipublicfiles.com/detectron2/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x/137849600/model_final_f10217.pkl"
-device = "cuda" if torch.cuda.is_available() else "cpu"
-print("Using device:", device)
 
 # code for detectron2 inference copied from official Colab tutorial (inference section):
 # https://colab.research.google.com/drive/16jcaJoc6bCFAQ96jDe2HwtXj7BMD_-m5
@@ -30,13 +26,12 @@ class MyModel(sly.nn.inference.InstanceSegmentation):
         device: Literal["cpu", "cuda", "cuda:0", "cuda:1", "cuda:2", "cuda:3"] = "cpu",
     ):
         ####### CUSTOM CODE FOR MY MODEL STARTS (e.g. DETECTRON2) #######
-        # Here we are downloading model weights by url for demo,
-        # but it also can be downloaded from Team Files (passing an entire folder is possible too)
-        weights_path = self.download(weights_url)
-        model_info = sly.json.load_json_file(os.path.join(model_dir, "model_info.json"))
-        architecture_name = model_info["architecture"]
+        self.gui: GUI.InferenceGUI
+        selected_model = self.gui.get_checkpoint_info()
+        weights_path, config_path = self.download_pretrained_files(selected_model, model_dir)
+
         cfg = get_cfg()
-        cfg.merge_from_file(model_zoo.get_config_file(architecture_name))
+        cfg.merge_from_file(config_path)
         cfg.MODEL.DEVICE = device  # learn more in torch.device
         cfg.MODEL.WEIGHTS = weights_path
         self.predictor = DefaultPredictor(cfg)
@@ -46,6 +41,54 @@ class MyModel(sly.nn.inference.InstanceSegmentation):
 
     def get_classes(self) -> List[str]:
         return self.class_names  # e.g. ["cat", "dog", ...]
+
+    def support_custom_models(self) -> bool:
+        return False
+
+    def get_models(self) -> List[Dict[str, str]]:
+        mask_rcnn_R_50_C4_1x = {
+            "Model": "R50-C4 (1x)",
+            "Dataset": "COCO",
+            "Train_time": "0.584",
+            "Inference_time": "0.110",
+            "Box AP score": "36.8",
+            "Mask AP score": "32.2",
+        }
+
+        mask_rcnn_R_50_DC5_3x = {
+            "Model": "R50-DC5 (3x)",
+            "Dataset": "COCO",
+            "Train_time": "0.470",
+            "Inference_time": "0.076",
+            "Box AP score": "40.0",
+            "Mask AP score": "35.9",
+        }
+        return [mask_rcnn_R_50_C4_1x, mask_rcnn_R_50_DC5_3x]
+
+    def get_models_url(self):
+        return {
+            "R50-C4 (1x)": {
+                "config": "COCO-InstanceSegmentation/mask_rcnn_R_50_C4_1x.yaml",
+                "weightsUrl": "https://dl.fbaipublicfiles.com/detectron2/COCO-InstanceSegmentation/mask_rcnn_R_50_C4_1x/137259246/model_final_9243eb.pkl",
+            },
+            "R50-DC5 (3x)": {
+                "config": "COCO-InstanceSegmentation/mask_rcnn_R_50_DC5_3x.yaml",
+                "weightsUrl": "https://dl.fbaipublicfiles.com/detectron2/COCO-InstanceSegmentation/mask_rcnn_R_50_DC5_3x/137849551/model_final_84107b.pkl",
+            },
+        }
+
+    def download_pretrained_files(self, selected_model: Dict[str, str], model_dir: str):
+        models_url = self.get_models_url()
+        weights_url = models_url[selected_model["Model"]]["weightsUrl"]
+        config_path = os.path.join(
+            model_dir, "configs", models_url[selected_model["Model"]]["config"]
+        )
+        weights_ext = sly.fs.get_file_ext(weights_url)
+        weights_dst_path = os.path.join(model_dir, f"{selected_model['Model']}{weights_ext}")
+        if not sly.fs.file_exists(weights_dst_path):
+            self.download(src_path=weights_url, dst_path=weights_dst_path)
+
+        return weights_dst_path, config_path
 
     def predict(self, image_path: str, settings: Dict[str, Any]) -> List[sly.nn.PredictionMask]:
         confidence_threshold = settings.get("confidence_threshold", 0.5)
@@ -67,19 +110,8 @@ class MyModel(sly.nn.inference.InstanceSegmentation):
         return results
 
 
-model_dir = "my_model"  # model weights will be downloaded into this dir
+model_dir = "my_models"  # model weights will be downloaded into this dir
 settings = {"confidence_threshold": 0.7}
-m = MyModel(model_dir=model_dir, custom_inference_settings=settings)
-m.load_on_device(model_dir=model_dir, device=device)
+m = MyModel(model_dir=model_dir, custom_inference_settings=settings, use_gui=True)
 
-if sly.is_production():
-    # this code block is running on Supervisely platform in production
-    # just ignore it during development
-    m.serve()
-else:
-    # for local development and debugging
-    image_path = "./demo_data/image_01.jpg"
-    results = m.predict(image_path, settings)
-    vis_path = "./demo_data/image_01_prediction.jpg"
-    m.visualize(results, image_path, vis_path)
-    print(f"predictions and visualization have been saved: {vis_path}")
+m.serve()

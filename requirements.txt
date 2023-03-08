@@ -1,4 +1,4 @@
-supervisely==6.69.66
+supervisely==6.69.68
 ffmpeg-python==0.2.0
 PyYAML==5.4.1
 torch==1.12.1
