@@ -1,8 +1,8 @@
 {
   "type": "app",
   "version": "2.0.0",
-  "name": "Serve custom instance segmentation model",
-  "description": "Learn how to integrate your custom model in readme",
+  "name": "Serve custom instance segmentation model with GUI",
+  "description": "Learn how to integrate your custom model",
   "categories": [
     "neural network",
     "images",

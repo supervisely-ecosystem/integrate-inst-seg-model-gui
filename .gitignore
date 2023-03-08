@@ -3,3 +3,4 @@
 supervisely
 *.pkl
 __pycache__
+temp_data

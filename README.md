@@ -1,3 +1,3 @@
-# Integrate custom instance segmentation model into Supervisely
+# Integrate custom instance segmentation model with GUI into Supervisely
 
 ## Example Readme
