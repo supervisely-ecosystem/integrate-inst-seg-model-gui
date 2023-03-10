@@ -36,7 +36,7 @@
             }
         },
         {
-            "name": "Advanced mode for Supervisely Team",
+            "name": "Advanced debug in Supervisely Platform",
             "type": "python",
             "request": "launch",
             "module": "uvicorn",
