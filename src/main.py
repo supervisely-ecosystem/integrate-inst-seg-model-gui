@@ -37,9 +37,16 @@ class MyModel(sly.nn.inference.InstanceSegmentation):
         self.predictor = DefaultPredictor(cfg)
         self.class_names = MetadataCatalog.get(cfg.DATASETS.TRAIN[0]).get("thing_classes")
         ####### CUSTOM CODE FOR MY MODEL ENDS (e.g. DETECTRON2)  ########
-        print(f"✅ Model has been successfully loaded on {device.upper()} device")
 
     def get_classes(self) -> List[str]:
+        selected_model = self.gui.get_checkpoint_info()
+        models_url = self.get_models_url()
+        config_path = os.path.join(
+            self._model_dir, "configs", models_url[selected_model["Model"]]["config"]
+        )
+        cfg = get_cfg()
+        cfg.merge_from_file(config_path)
+        self.class_names = MetadataCatalog.get(cfg.DATASETS.TRAIN[0]).get("thing_classes")
         return self.class_names  # e.g. ["cat", "dog", ...]
 
     def support_custom_models(self) -> bool:
@@ -112,6 +119,7 @@ class MyModel(sly.nn.inference.InstanceSegmentation):
 
 model_dir = "my_models"  # model weights will be downloaded into this dir
 settings = {"confidence_threshold": 0.7}
+# settings = {}
 m = MyModel(model_dir=model_dir, custom_inference_settings=settings, use_gui=True)
 
 m.serve()
